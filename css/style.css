@@ -1,0 +1,9 @@
+body{
+	background-color: black;
+	margin: 0;
+}
+.livevideo{
+	width: 800;
+	height:480;
+	transform: scaleX(-1);
+}

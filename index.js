@@ -17,7 +17,7 @@ function createWindow () {
 
   mainWindow = new BrowserWindow({width: 800, height: 480,frame:false,resizable:false})
   if(os.arch()=='arm'){
-    mainWindow.setFullscreen(true);
+    mainWindow.setFullScreen(true);
   }
 
 
