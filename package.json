@@ -11,5 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^1.6.2"
-  }
+  },
+  "repository":"https://github.com/danielzehe/xfdbooth.git"
 }
