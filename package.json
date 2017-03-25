@@ -1,0 +1,15 @@
+{
+  "name": "xfdbooth",
+  "version": "0.9.0",
+  "description": "photobooth",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^1.6.2"
+  }
+}
