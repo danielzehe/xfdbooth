@@ -1,4 +1,7 @@
 const electron = require('electron')
+const {ipcMain} = require('electron')
+const spawn = require('child_process').spawn
+
 const os = require('os');
 // Module to control application life.
 const app = electron.app
@@ -25,7 +28,7 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+    pathname: path.join(__dirname, 'main.html'),
     protocol: 'file:',
     slashes: true
   }))
@@ -66,3 +69,17 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('startProcess', (event, arg) => {
+  console.log(arg)  // prints "ping"
+  // event.sender.send('asynchronous-reply', 'pong')
+  mainWindow.loadURL(url.format({ pathname:path.join(__dirname,'index.html'),
+                                  protocol: 'file',
+                                  slashes:true}));
+})
+
+
+ipcMain.on('takepic',(event,args)=>{
+  let phototaking = spawn('gphoto2',['--capture-image-and-download','--force-overwrite']);
+  phototaking.stdout.pipe(process.stdout);
+})

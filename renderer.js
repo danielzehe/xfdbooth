@@ -1,4 +1,5 @@
 const {webFrame} = require('electron')
+const {ipcRenderer} = require('electron')
 webFrame.setZoomLevelLimits(1, 1)
 navigator.webkitGetUserMedia({video: true},
   function(stream) {
@@ -8,6 +9,17 @@ navigator.webkitGetUserMedia({video: true},
     alert('could not connect stream');
   }
 );
-function takepic(){
-	console.log("hallo");
+
+let cdinterval = setInterval(docountdown, 1000);
+let maxcountdown = 2;
+
+function docountdown(){
+	
+	document.getElementById('countdown').innerHTML = maxcountdown;
+	if(maxcountdown--==0){
+		clearInterval(cdinterval);
+		document.getElementById('countdown').innerHTML = " :)";
+		ipcRenderer.send('takepic');
+
+	}
 }
