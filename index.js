@@ -1,6 +1,8 @@
 const electron = require('electron')
 const {ipcMain} = require('electron')
 const spawn = require('child_process').spawn
+const uuidV1 = require('uuid/v1')
+const im = require('imagemagick')
 
 const os = require('os');
 // Module to control application life.
@@ -80,6 +82,36 @@ ipcMain.on('startProcess', (event, arg) => {
 
 
 ipcMain.on('takepic',(event,args)=>{
-  let phototaking = spawn('gphoto2',['--capture-image-and-download','--force-overwrite']);
-  phototaking.stdout.pipe(process.stdout);
+  let basename = uuidV1();
+  let numberofpics =4;
+  let p = Promise.resolve();
+  for(let i=0;i<numberofpics;i++){
+    let filename = basename+'_'+i+'.jpg';
+    // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
+    p = p.then(()=>takepicwithfilename(filename))
+    // phototaking.stdout.pipe(process.stdout);
+  }
+  p.then(()=>{
+    console.log('make more');
+      let convertargs = ['(',basename+'_'+0+'.jpg',basename+'_'+1+'.jpg','+append',')','(','(',basename+'_'+2+'.jpg',basename+'_'+3+'.jpg','+append',')','lower.jpg','-append',')','-append',basename+'_all.jpg'];
+
+      im.convert(convertargs,(err,stdout)=>{
+          if (err) throw err;
+          
+      });
+  })
 })
+
+
+function takepicwithfilename(filename){
+  return new Promise((resolve,reject)=>{
+    let phototaking = spawn('gphoto2',['--capture-image-and-download','--filename='+filename]);
+    phototaking.stdout.pipe(process.stdout);
+
+    phototaking.on('close',(err)=>{
+      console.log("done");
+       resolve(filename);
+    })
+  });
+}
+
