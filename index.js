@@ -4,6 +4,42 @@ const spawn = require('child_process').spawn
 const uuidV1 = require('uuid/v1')
 const im = require('imagemagick')
 
+
+
+
+const flickrOps = require('./flickrcreds.js');
+var Flickr = require("flickrapi"),
+    FlickrOptions= {
+      api_key : flickrOps.api_key,
+      secret: flickrOps.secret,
+      permissions:'write',
+      user_id :flickrOps.user_id,
+      access_token: flickrOps.access_token,
+      access_token_secret : flickrOps.access_token_secret
+    };
+
+// Flickr.authenticate(FlickrOptions, function(error, flickr) {
+//   var uploadOptions = {
+//     photos: [{
+//       title: "test",
+//       // is_public:false,
+//       photo: __dirname + "/lower.jpg"
+//     }]
+//   };
+//   console.log("uploading: ",uploadOptions);
+//   Flickr.upload(uploadOptions, FlickrOptions, function(err, result) {
+//     if(err) {
+//       return console.error(error);
+//     }
+//     console.log("photos uploaded", result);
+//   });
+// });
+
+
+
+
+
+
 const os = require('os');
 // Module to control application life.
 const app = electron.app
@@ -85,22 +121,89 @@ ipcMain.on('takepic',(event,args)=>{
   let basename = uuidV1();
   let numberofpics =4;
   let p = Promise.resolve();
-  for(let i=0;i<numberofpics;i++){
-    let filename = basename+'_'+i+'.jpg';
-    // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
-    p = p.then(()=>takepicwithfilename(filename))
-    // phototaking.stdout.pipe(process.stdout);
-  }
-  p.then(()=>{
-    console.log('make more');
-      let convertargs = ['(',basename+'_'+0+'.jpg',basename+'_'+1+'.jpg','+append',')','(','(',basename+'_'+2+'.jpg',basename+'_'+3+'.jpg','+append',')','lower.jpg','-append',')','-append',basename+'_all.jpg'];
+  let filenames = new Array();
+  // for(let i=0;i<numberofpics;i++){
+  //   let filename = basename+'_'+i+'.jpg';
+  //   // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
+  //   filenames.push(filename);
+  //   p = p.then(()=>takepicwithfilename(filename))
+  //   // phototaking.stdout.pipe(process.stdout);
+  // }
+  // //once the pictures are taken, stitch them into one
+  // p=p.then(()=>makecollage(filenames,basename));
+
+
+  // p= p.then((colfilename)=>uploadtoFlickr(colfilename));
+
+  p = p.then(()=>getLinkforPhotoIDfromFlickr(32853305384));
+
+
+})
+
+
+function getLinkforPhotoIDfromFlickr(photoID){
+  return new Promise((resolve,reject)=>{
+    Flickr.authenticate(FlickrOptions, function(error, flickr) {
+      
+      console.log("getting INFO: ",photoID);
+      Flickr.photos.getInfo({photo_id:photoID,authenticated: true}, FlickrOptions, function(err, result) {
+        // if(err) {
+        //   return console.error(error);
+        // }
+
+        console.log("info uploaded", result);
+        
+      });
+    });
+  });
+}
+
+
+
+function uploadtoFlickr(filename){
+  console.log("uploading ", filename);
+
+  return new Promise((resolve,reject)=>{
+    Flickr.authenticate(FlickrOptions, function(error, flickr) {
+      var uploadOptions = {
+        photos: [{
+          title: "test",
+          is_public:0,
+          photo: __dirname + "/"+filename
+        }]
+      };
+      console.log("uploading: ",uploadOptions);
+      Flickr.upload(uploadOptions, FlickrOptions, function(err, result) {
+        if(err) {
+          return console.error(error);
+        }
+        console.log("photos uploaded", result);
+        resolve(result[0]);
+      });
+    });
+  });
+}
+
+
+
+function makecollage(filenames,basename){
+  console.log(filenames);
+  return new Promise((resolve,reject)=>{
+      let finalname = basename+'_all.jpg';
+      let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower.jpg','-append',')','-append',finalname];
 
       im.convert(convertargs,(err,stdout)=>{
-          if (err) throw err;
+          if (err) {
+            reject();
+          }
+          else{
+            console.log('collaging done');
+            resolve(finalname);
+          }
           
       });
   })
-})
+}
 
 
 function takepicwithfilename(filename){
@@ -109,7 +212,7 @@ function takepicwithfilename(filename){
     phototaking.stdout.pipe(process.stdout);
 
     phototaking.on('close',(err)=>{
-      console.log("done");
+      console.log("done taking 1 picture");
        resolve(filename);
     })
   });

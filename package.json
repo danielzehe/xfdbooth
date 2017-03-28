@@ -16,6 +16,8 @@
   "repository": "https://github.com/danielzehe/xfdbooth.git",
   "dependencies": {
     "electron": "^1.6.2",
+    "flickr-upload": "^1.0.0",
+    "flickrapi": "^0.6.0",
     "imagemagick": "^0.1.3",
     "uuid": "^3.0.1"
   }
