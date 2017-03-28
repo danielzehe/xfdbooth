@@ -3,7 +3,7 @@ const {ipcMain} = require('electron')
 const spawn = require('child_process').spawn
 const uuidV1 = require('uuid/v1')
 const im = require('imagemagick')
-
+const qr = require('qr-encode');
 
 
 
@@ -122,37 +122,50 @@ ipcMain.on('takepic',(event,args)=>{
   let numberofpics =4;
   let p = Promise.resolve();
   let filenames = new Array();
-  // for(let i=0;i<numberofpics;i++){
-  //   let filename = basename+'_'+i+'.jpg';
-  //   // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
-  //   filenames.push(filename);
-  //   p = p.then(()=>takepicwithfilename(filename))
-  //   // phototaking.stdout.pipe(process.stdout);
-  // }
-  // //once the pictures are taken, stitch them into one
-  // p=p.then(()=>makecollage(filenames,basename));
+  for(let i=0;i<numberofpics;i++){
+    let filename = basename+'_'+i+'.jpg';
+    // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
+    filenames.push(filename);
+    p = p.then(()=>takepicwithfilename(filename))
+    // phototaking.stdout.pipe(process.stdout);
+  }
+  //once the pictures are taken, stitch them into one
+  p=p.then(()=>makecollage(filenames,basename));
 
 
-  // p= p.then((colfilename)=>uploadtoFlickr(colfilename));
+  p= p.then((colfilename)=>uploadtoFlickr(colfilename));
 
-  p = p.then(()=>getLinkforPhotoIDfromFlickr(32853305384));
+  p = p.then((photoID)=>getLinkforPhotoIDfromFlickr(photoID));
 
-
+  p.then((photourl)=>{
+    genQRCodeandShow(photourl);
+  })
 })
+
+
+function genQRCodeandShow(photourl){
+  mainWindow.loadURL(url.format({ pathname:path.join(__dirname,'qrwindow.html'),
+                                  protocol: 'file',
+                                  slashes:true}));
+    mainWindow.webContents.once('did-finish-load',()=>{
+      mainWindow.webContents.send('qrcodedata',qr(photourl,{type:6,size:6,level:'Q'}));
+  })
+}
 
 
 function getLinkforPhotoIDfromFlickr(photoID){
   return new Promise((resolve,reject)=>{
     Flickr.authenticate(FlickrOptions, function(error, flickr) {
-      
       console.log("getting INFO: ",photoID);
-      Flickr.photos.getInfo({photo_id:photoID,authenticated: true}, FlickrOptions, function(err, result) {
-        // if(err) {
-        //   return console.error(error);
-        // }
+      flickr.photos.getSizes({
+        api_key: flickrOps.api_key,
+        user_id: flickrOps.user_id,
+        authenticated: true,
+        photo_id:photoID
 
-        console.log("info uploaded", result);
-        
+        }, function(err, result) {
+          resolve(result.sizes.size[10].source);
+
       });
     });
   });
