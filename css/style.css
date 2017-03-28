@@ -24,6 +24,19 @@ body{
 	top:200;
 }
 
+.qr-wrapper{
+	vertical-align: middle;
+	text-align: center;
+	height: 100%;
+	width:100%;
+}
+
+#qrcode{
+	height:calc(100% - 20px);
+	border:10px solid white;
+
+}
+
 #countdown{
 	font-size: 10em;
 	font-family: sans-serif;

@@ -140,6 +140,13 @@ ipcMain.on('takepic',(event,args)=>{
   p.then((photourl)=>{
     genQRCodeandShow(photourl);
   })
+
+  // p.then(()=>{
+  //   genQRCodeandShow('https://farm3.staticflickr.com/2891/33665986346_c8454ee650_k.jpg');
+  // })
+
+
+
 })
 
 
@@ -203,7 +210,7 @@ function makecollage(filenames,basename){
   console.log(filenames);
   return new Promise((resolve,reject)=>{
       let finalname = basename+'_all.jpg';
-      let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower.jpg','-append',')','-append',finalname];
+      let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower1.jpg','-append',')','-append',finalname];
 
       im.convert(convertargs,(err,stdout)=>{
           if (err) {

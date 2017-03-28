@@ -8,3 +8,7 @@ ipcRenderer.on('qrcodedata',(evnt,args)=>{
 	console.log(args);
 	document.getElementById('qrcode').src=args;
 })
+
+function startPicTaking(){
+	ipcRenderer.send('startProcess', 'now')
+}
