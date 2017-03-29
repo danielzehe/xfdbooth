@@ -4,10 +4,12 @@ const spawn = require('child_process').spawn
 const uuidV1 = require('uuid/v1')
 const im = require('imagemagick')
 const qr = require('qr-encode');
+const scpClient = require('scp2').Client
 
 
-
+const useflickr = false;
 const flickrOps = require('./flickrcreds.js');
+const scpCreds = require('./scpcreds.js');
 var Flickr = require("flickrapi"),
     FlickrOptions= {
       api_key : flickrOps.api_key,
@@ -17,26 +19,6 @@ var Flickr = require("flickrapi"),
       access_token: flickrOps.access_token,
       access_token_secret : flickrOps.access_token_secret
     };
-
-// Flickr.authenticate(FlickrOptions, function(error, flickr) {
-//   var uploadOptions = {
-//     photos: [{
-//       title: "test",
-//       // is_public:false,
-//       photo: __dirname + "/lower.jpg"
-//     }]
-//   };
-//   console.log("uploading: ",uploadOptions);
-//   Flickr.upload(uploadOptions, FlickrOptions, function(err, result) {
-//     if(err) {
-//       return console.error(error);
-//     }
-//     console.log("photos uploaded", result);
-//   });
-// });
-
-
-
 
 
 
@@ -132,21 +114,19 @@ ipcMain.on('takepic',(event,args)=>{
   //once the pictures are taken, stitch them into one
   p=p.then(()=>makecollage(filenames,basename));
 
+  if(useflickr){
+    p = p.then((colfilename)=>uploadtoFlickr(colfilename));
 
-  p= p.then((colfilename)=>uploadtoFlickr(colfilename));
+    p = p.then((photoID)=>getLinkforPhotoIDfromFlickr(photoID));
+  }
+  else{
+    //using scp 
+    p=p.then((colfilename)=>uploadviaSCP(colfilename));
 
-  p = p.then((photoID)=>getLinkforPhotoIDfromFlickr(photoID));
-
+  }
   p.then((photourl)=>{
     genQRCodeandShow(photourl);
   })
-
-  // p.then(()=>{
-  //   genQRCodeandShow('https://farm3.staticflickr.com/2891/33665986346_c8454ee650_k.jpg');
-  // })
-
-
-
 })
 
 
@@ -155,8 +135,32 @@ function genQRCodeandShow(photourl){
                                   protocol: 'file',
                                   slashes:true}));
     mainWindow.webContents.once('did-finish-load',()=>{
-      mainWindow.webContents.send('qrcodedata',qr(photourl,{type:6,size:6,level:'Q'}));
+      mainWindow.webContents.send('qrcodedata',qr(photourl,{type:8,size:6,level:'Q'}));
   })
+}
+
+
+function uploadviaSCP(filename){
+  console.log('uploading to scp: ',filename);
+
+  return new Promise((resolve,reject)=>{
+    var client = new scpClient();
+
+    client.defaults(scpCreds)
+
+    client.upload(filename,'<destination>',(err)=>{
+      console.log('upload done');
+      let photourl = '<photourl>'+filename;
+      console.log('returning photoURL: '+photourl);
+      resolve(photourl);
+    })
+
+    client.on('transfer', (buffer, uploaded, total)=>{
+      console.log('progress: '+(uploaded/total)+'%');
+    })
+
+  }) 
+
 }
 
 
