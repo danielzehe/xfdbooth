@@ -5,9 +5,11 @@ const uuidV1 = require('uuid/v1')
 const im = require('imagemagick')
 const qr = require('qr-encode');
 const scpClient = require('scp2').Client
-
+const request = require('request')
+const fs = require('fs')
 
 const useflickr = false;
+const usescp =true;
 const flickrOps = require('./flickrcreds.js');
 const scpCreds = require('./scpcreds.js');
 var Flickr = require("flickrapi"),
@@ -103,26 +105,34 @@ ipcMain.on('takepic',(event,args)=>{
   let basename = uuidV1();
   let numberofpics =4;
   let p = Promise.resolve();
-  let filenames = new Array();
-  for(let i=0;i<numberofpics;i++){
-    let filename = basename+'_'+i+'.jpg';
-    // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
-    filenames.push(filename);
-    p = p.then(()=>takepicwithfilename(filename))
-    // phototaking.stdout.pipe(process.stdout);
-  }
+  // let filenames = new Array();
+  // for(let i=0;i<numberofpics;i++){
+  //   let filename = basename+'_'+i+'.jpg';
+  //   // let phototaking = spawnSync('gphoto2',['--capture-image-and-download','--filename='+filename]);
+  //   filenames.push(filename);
+  //   p = p.then(()=>takepicwithfilename(filename))
+  //   // phototaking.stdout.pipe(process.stdout);
+  // }
+
+  p=p.then(()=>takeNpicswithbasename(basename,numberofpics))
+
+
+  p=p.then((filenames)=>showProcessingWindow(filenames));
   //once the pictures are taken, stitch them into one
-  p=p.then(()=>makecollage(filenames,basename));
+  p=p.then((filenames)=>makecollage(filenames,basename));
 
   if(useflickr){
     p = p.then((colfilename)=>uploadtoFlickr(colfilename));
 
     p = p.then((photoID)=>getLinkforPhotoIDfromFlickr(photoID));
   }
-  else{
+  else if(usescp){
     //using scp 
     p=p.then((colfilename)=>uploadviaSCP(colfilename));
 
+  }
+  else{
+    p=p.then((colfilename)=>uploadviaHTTP(colfilename));
   }
   p.then((photourl)=>{
     genQRCodeandShow(photourl);
@@ -139,28 +149,81 @@ function genQRCodeandShow(photourl){
   })
 }
 
+function showProcessingWindow(filenames){
+
+
+  return new Promise((resolve, reject)=>{
+    mainWindow.loadURL(url.format({pathname:path.join(__dirname,'processing.html'),protocol:'file',slashes:true}));
+       mainWindow.webContents.once('did-finish-load',()=>{
+      // mainWindow.webContents.send('previewimg',filename);
+      resolve(filenames);
+    })
+  })
+
+}
+
+function uploadviaHTTP(filename){
+  console.log('uploading to http api: ',filename)
+
+  mainWindow.webContents.send('previewimg',filename);
+  return new Promise((resolve,reject)=>{
+    let filestream =  fs.createReadStream(filename)   
+    const stats = fs.statSync(filename)
+    const totalsize = stats.size
+    var formData={
+       avatar:filestream
+    }
+
+    r = request.post({url:'http://localhost:3333/api/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
+      if (err) {
+        return console.error('upload failed:', err);
+      }
+      console.log('Upload successful!  Server responded with:', body);
+      let photourl = 'http://photobooth.danielwithsilver.com/'+filename;
+
+      resolve(photourl)
+    });
+    let blockLength = 0;
+    filestream.on('data', function(data) {
+      blockLength += data.length
+      // console.log(blockLength/totalsize);
+
+      sendProgress(blockLength/totalsize,mainWindow);
+
+      //TODO progress is here
+    })
+
+
+  });
+}
+
+
+function sendProgress(progress,view){
+  view.webContents.send('progess',progress);
+}
 
 function uploadviaSCP(filename){
   console.log('uploading to scp: ',filename);
+  mainWindow.webContents.send('previewimg',filename);
 
   return new Promise((resolve,reject)=>{
     var client = new scpClient();
 
     client.defaults(scpCreds)
 
-    client.upload(filename,'<destination>',(err)=>{
+    client.upload(filename,'/var/www/virtual/llb/photobooth.danielwithsilver.com',(err)=>{
       console.log('upload done');
-      let photourl = '<photourl>'+filename;
+      let photourl = 'http://photobooth.danielwithsilver.com/'+filename;
       console.log('returning photoURL: '+photourl);
       resolve(photourl);
     })
 
     client.on('transfer', (buffer, uploaded, total)=>{
-      console.log('progress: '+(uploaded/total)+'%');
+      // console.log('progress: '+(uploaded/total)+'%');
+      sendProgress(uploaded/total,mainWindow);
     })
 
   }) 
-
 }
 
 
@@ -186,7 +249,7 @@ function getLinkforPhotoIDfromFlickr(photoID){
 
 function uploadtoFlickr(filename){
   console.log("uploading ", filename);
-
+  mainWindow.webContents.send('previewimg',filename);
   return new Promise((resolve,reject)=>{
     Flickr.authenticate(FlickrOptions, function(error, flickr) {
       var uploadOptions = {
@@ -228,7 +291,31 @@ function makecollage(filenames,basename){
       });
   })
 }
+function takeNpicswithbasename(basename,n){
+  return new Promise((resolve,reject)=>{
+    let filenames = new Array();
+    let phototaking = spawn('gphoto2',['--capture-image-and-download','-F 4','-I 3','--filename='+basename+'_%n.jpg']);
+    // filenames.push(basename+'.jpg');
+    phototaking.stdout.pipe(process.stdout);
+    phototaking.stdout.setEncoding('utf8');
+    phototaking.stdout.on('data',(data)=>{
+      // console.log(data);
 
+      const re = new RegExp('as ('+basename+'_[0-9].jpg)','i')
+      // console.log(re);
+      let found = data.match(re);
+      if(found!=null){
+        // console.log(found[1]);
+        filenames.push(found[1]);
+      }
+    })
+    phototaking.on('close',(err)=>{
+
+       // console.log('done taking '+n+' pictures');
+       resolve(filenames);
+    })
+  })
+}
 
 function takepicwithfilename(filename){
   return new Promise((resolve,reject)=>{
