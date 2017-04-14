@@ -8,8 +8,12 @@ const scpClient = require('scp2').Client
 const request = require('request')
 const fs = require('fs')
 
+
+// const remoteurl = 'localhost:64888'
+const remoteurl = 'photobooth.danielwithsilver.com'
+
 const useflickr = false;
-const usescp =true;
+const usescp =false;
 const flickrOps = require('./flickrcreds.js');
 const scpCreds = require('./scpcreds.js');
 var Flickr = require("flickrapi"),
@@ -174,12 +178,12 @@ function uploadviaHTTP(filename){
        avatar:filestream
     }
 
-    r = request.post({url:'http://localhost:3333/api/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
+    r = request.post({url:'http://'+remoteurl+'/api/upload', formData: formData}, function optionalCallback(err, httpResponse, body) {
       if (err) {
         return console.error('upload failed:', err);
       }
       console.log('Upload successful!  Server responded with:', body);
-      let photourl = 'http://photobooth.danielwithsilver.com/'+filename;
+      let photourl = 'http://'+remoteurl+'/web/singlepic/'+filename;
 
       resolve(photourl)
     });
