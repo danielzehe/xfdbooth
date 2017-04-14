@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron')
 webFrame.setZoomLevelLimits(1, 1)
 ipcRenderer.on('progess',(evnt,args)=>{
 	console.log(args);
-	document.getElementById('percent').innerHTML=args.toFixed(2);
+	document.getElementById('percent').innerHTML=(args*100).toFixed(0);
 })
 
 ipcRenderer.on('previewimg',(evnt,args)=>{
