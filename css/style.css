@@ -4,11 +4,69 @@ body{
 }
 .livevideo{
 	width: 800;
-	height:480;
+	height:560;
+	overflow: hidden;
+	margin-top: -80px;
 
 	transform: scaleX(-1);
 }
 
+
+.black{
+	height:80px;
+	width: 100%;
+	z-index: 99;
+	/*background-color: black;*/
+}
+
+
+#top{
+	position: absolute;
+	top:0px;
+	left: 0px;
+}
+
+#bottom{
+	position: absolute;
+	top:400px;
+	left: 0px
+}
+
+.flexbox{
+	display: flex;
+	flex-direction: row;
+}
+.flex-element{
+/*	background-color:white;
+	border:solid red 2px;*/
+	flex-grow: 1;
+	height: 480;
+	width: calc(100%/3);
+	vertical-align: middle;
+ 	text-align: center;
+ 	display: flex;
+ 	flex-direction: column;
+}
+
+.flex-element:nth-child(2){
+	border-left: solid white 1px;
+	border-right: solid white 1px;
+}
+
+.flex-element > img{
+	/*width:100%;*/
+	/*max-width: calc(800px/3 - 10px);*/
+	max-height: 320px;
+	flex-grow: 0;
+	/*height: calc(480px*(2/3))*/
+}
+
+
+.optionText{
+	flex-grow: 0;
+	min-height: calc(480px/3);
+	color: white;
+}
 
 .filling{
 	width: 100%;

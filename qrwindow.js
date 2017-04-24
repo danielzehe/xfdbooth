@@ -10,5 +10,5 @@ ipcRenderer.on('qrcodedata',(evnt,args)=>{
 })
 
 function startPicTaking(){
-	ipcRenderer.send('startProcess', 'now')
+	ipcRenderer.send('showMain')
 }

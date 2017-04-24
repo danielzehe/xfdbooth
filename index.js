@@ -97,17 +97,35 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 ipcMain.on('startProcess', (event, arg) => {
-  console.log(arg)  // prints "ping"
+  // console.log(arg)  // prints "ping"
   // event.sender.send('asynchronous-reply', 'pong')
   mainWindow.loadURL(url.format({ pathname:path.join(__dirname,'index.html'),
                                   protocol: 'file',
                                   slashes:true}));
+
+
+  mainWindow.webContents.once('did-finish-load',()=>{
+      mainWindow.webContents.send('picturetype',arg);
+  })
+
+})
+
+ipcMain.on('showMain',(event,args)=>{
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'main.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
 })
 
 
 ipcMain.on('takepic',(event,args)=>{
+  // console.log(args);
   let basename = uuidV1();
-  let numberofpics =4;
+     let numberofpics =1;
+  if(args=='4sq' || args == '4col'){
+    numberofpics =4;
+  }
   let p = Promise.resolve();
   // let filenames = new Array();
   // for(let i=0;i<numberofpics;i++){
@@ -123,8 +141,15 @@ ipcMain.on('takepic',(event,args)=>{
 
   p=p.then((filenames)=>showProcessingWindow(filenames));
   //once the pictures are taken, stitch them into one
-  p=p.then((filenames)=>makecollage(filenames,basename));
-
+  if(args=='4sq'){
+    p=p.then((filenames)=>makecollage4Sq(filenames,basename));
+  }
+  else if(args=='4col'){
+    p=p.then((filenames)=>makecollage4Col(filenames,basename));
+  }
+  else if(args=='1'){
+    p=p.then((filenames)=>makecollage1(filenames,basename));
+  }
   if(useflickr){
     p = p.then((colfilename)=>uploadtoFlickr(colfilename));
 
@@ -277,11 +302,27 @@ function uploadtoFlickr(filename){
 
 
 
-function makecollage(filenames,basename){
+function makecollage4Sq(filenames,basename){
   console.log(filenames);
+  // return new Promise((resolve,reject)=>{
+  //     let finalname = basename+'_all.jpg';
+  //     let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower1.jpg','-append',')','-append',finalname];
+
+  //     im.convert(convertargs,(err,stdout)=>{
+  //         if (err) {
+  //           reject();
+  //         }
+  //         else{
+  //           console.log('collaging done');
+  //           resolve(finalname);
+  //         }
+          
+  //     });
+  // })
+
   return new Promise((resolve,reject)=>{
-      let finalname = basename+'_all.jpg';
-      let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower1.jpg','-append',')','-append',finalname];
+      let finalname = basename+'_c.jpg';
+      let convertargs = ['(',filenames[0],filenames[1],'+append',')','(',filenames[2],filenames[3],'+append',')','-append',finalname];
 
       im.convert(convertargs,(err,stdout)=>{
           if (err) {
@@ -289,16 +330,64 @@ function makecollage(filenames,basename){
           }
           else{
             console.log('collaging done');
-            resolve(finalname);
+
+            let composite = spawn('composite',['-gravity','South','lower1.jpg',finalname,basename+'_all.jpg']);
+
+            composite.on('close',(err)=>{
+              resolve(basename+'_all.jpg');
+            })
+
+
+            // resolve(finalname);
           }
           
       });
   })
+
+
+
 }
+
+
+function makecollage4Col(filenames,basename){
+  console.log(filenames);
+
+  return new Promise((resolve,reject)=>{
+      let finalname = basename+'_all.jpg';
+      let convertargs = ['(',filenames[0],filenames[1],filenames[2],filenames[3],'top1.png',')','-append',finalname];
+      im.convert(convertargs,(err,stdout)=>{
+        if (err) {
+          reject();
+        }
+        else{
+          console.log('collaging done');
+          resolve(finalname);
+        } 
+      });
+  })
+}
+
+function makecollage1(filenames,basename){
+  console.log(filenames);
+  return new Promise((resolve,reject)=>{
+    let finalname = basename+'_all.jpg';
+    let convertargs = ['(',filenames[0],'lower1 small.jpeg',')','-append',finalname];
+    im.convert(convertargs,(err,stdout)=>{
+      if (err) {
+        reject();
+      }
+      else{
+        console.log('collaging done');
+        resolve(finalname);
+      } 
+    });
+  })
+}
+
 function takeNpicswithbasename(basename,n){
   return new Promise((resolve,reject)=>{
     let filenames = new Array();
-    let phototaking = spawn('gphoto2',['--capture-image-and-download','-F 4','-I 3','--filename='+basename+'_%n.jpg']);
+    let phototaking = spawn('gphoto2',['--capture-image-and-download','-F '+n,'-I 3','--filename='+basename+'_%n.jpg']);
     // filenames.push(basename+'.jpg');
     phototaking.stdout.pipe(process.stdout);
     phototaking.stdout.setEncoding('utf8');

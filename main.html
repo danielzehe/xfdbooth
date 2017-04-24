@@ -5,10 +5,28 @@
     <script type="text/javascript" language="javascript" src="./main.js"></script>
   </head>
   <body> 
-  	<div class="filling" onclick="startPicTaking()">
+<!--   	<div class="filling" onclick="startPicTaking()">
   		<span>Touch to start</span>
-  	</div>
-  
+  	</div> -->
+    <div class="flexbox">
+      <div class="flex-element" onclick="startPicTaking4Square()">
+        <div class="optionText">4 Photos Rectangle</div>
+        <img src="4 sample image.png" >
+      </div>
+      <div class="flex-element" onclick="startPicTaking4Column()"">
+        <div class="optionText">4 Photos Strip</div>
+        <img src="4 sample vertical image.png" id="middle" >
+      </div>
+
+      <div class="flex-element" onclick="startPicTaking1()"">
+        <div class="optionText">1 Photo</div>
+        <img src="1 sample image.png" >
+      </div>
+
+
+    </div>
+
+
   </body>
 
 

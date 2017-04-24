@@ -10,16 +10,32 @@ navigator.webkitGetUserMedia({video: true},
   }
 );
 
-let cdinterval = setInterval(docountdown, 1000);
-let maxcountdown = 2;
+ipcRenderer.on('picturetype',(evnt,args)=>{
+	let cdinterval = setInterval(docountdown, 1000);
+	let maxcountdown = 2;
 
-function docountdown(){
-	
-	document.getElementById('countdown').innerHTML = maxcountdown;
-	if(maxcountdown--==0){
-		clearInterval(cdinterval);
-		document.getElementById('countdown').innerHTML = " :)";
-		ipcRenderer.send('takepic');
+	function docountdown(){
+		
+		document.getElementById('countdown').innerHTML = maxcountdown;
+		if(maxcountdown--==0){
+			clearInterval(cdinterval);
+			document.getElementById('countdown').innerHTML = " :)";
+			ipcRenderer.send('takepic',args);
 
+		}
 	}
-}
+})
+
+// let cdinterval = setInterval(docountdown, 1000);
+// let maxcountdown = 2;
+
+// function docountdown(){
+	
+// 	document.getElementById('countdown').innerHTML = maxcountdown;
+// 	if(maxcountdown--==0){
+// 		clearInterval(cdinterval);
+// 		document.getElementById('countdown').innerHTML = " :)";
+// 		ipcRenderer.send('takepic');
+
+// 	}
+// }
