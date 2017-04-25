@@ -53,12 +53,13 @@ body{
 	border-right: solid white 1px;
 }
 
-.flex-element > img{
-	/*width:100%;*/
-	/*max-width: calc(800px/3 - 10px);*/
-	max-height: 320px;
+
+.image-wrapper > img{
+	width:100%;
+}
+
+.image-wrapper{
 	flex-grow: 0;
-	/*height: calc(480px*(2/3))*/
 }
 
 
@@ -66,6 +67,8 @@ body{
 	flex-grow: 0;
 	min-height: calc(480px/3);
 	color: white;
+	font-family: sans-serif;
+	font-size: 3em;
 }
 
 .filling{
