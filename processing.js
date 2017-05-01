@@ -10,3 +10,9 @@ ipcRenderer.on('previewimg',(evnt,args)=>{
 	console.log("previewing image: "+args);
 	document.getElementById('preview').src=args;
 })
+
+
+
+function startPicTaking(){
+	ipcRenderer.send('showMain')
+}

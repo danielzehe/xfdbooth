@@ -191,6 +191,8 @@ function showProcessingWindow(filenames){
     mainWindow.loadURL(url.format({pathname:path.join(__dirname,'processing.html'),protocol:'file',slashes:true}));
        mainWindow.webContents.once('did-finish-load',()=>{
       // mainWindow.webContents.send('previewimg',filename);
+        mainWindow.webContents.send('previewimg',filenames[0]);
+
       resolve(filenames);
     })
   })
