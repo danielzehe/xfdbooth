@@ -19,7 +19,7 @@ ipcRenderer.on('picturetype',(evnt,args)=>{
 		document.getElementById('countdown').innerHTML = maxcountdown;
 		if(maxcountdown--==0){
 			clearInterval(cdinterval);
-			document.getElementById('countdown').innerHTML = " :)";
+			document.getElementById('countdown').innerHTML = ":)";
 			ipcRenderer.send('takepic',args);
 
 		}

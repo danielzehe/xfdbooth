@@ -4,10 +4,7 @@ body{
 }
 .livevideo{
 	width: 800;
-	height:560;
-	overflow: hidden;
-	margin-top: -80px;
-
+	height:480;
 	transform: scaleX(-1);
 }
 
@@ -37,8 +34,6 @@ body{
 	flex-direction: row;
 }
 .flex-element{
-/*	background-color:white;
-	border:solid red 2px;*/
 	flex-grow: 1;
 	height: 480;
 	width: calc(100%/3);
@@ -52,8 +47,6 @@ body{
 	border-left: solid white 1px;
 	border-right: solid white 1px;
 }
-
-
 .image-wrapper > img{
 	width:100%;
 }
@@ -116,33 +109,31 @@ body{
 
 
 #percent{
-	font-size:5em;
+	font-size:4em;
 	font-family: sans-serif;
 	font-weight: 500;
 	color: white;
 	z-index: 100;
-	position: absolute;
-	top:200;
-	left:50;
 }
-
+/*
 #percent::after{
 	content: "%";
 
-}
+}*/
 
 #preview{
-	height: 480;
+	height:calc(80% - 20px);
 }
 
 #info{
-	font-size: 3em;
+	font-size: 2em;
 	font-family: sans-serif;
 	font-weight: 500;
 	color: white;
-	z-index: 100;
-	position: absolute;
-	top:100;
-	left:50;
 }
-
+.preview-wrapper{
+	vertical-align: middle;
+	text-align: center;
+	height: 100%;
+	width:100%;
+}

@@ -15,3 +15,7 @@ function startPicTaking4Column(){
 function startPicTaking1(){
 	ipcRenderer.send('startProcess','1')
 }
+
+function startPicTaking(){
+	ipcRenderer.send('startProcess','3')
+}

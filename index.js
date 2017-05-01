@@ -122,9 +122,12 @@ ipcMain.on('showMain',(event,args)=>{
 ipcMain.on('takepic',(event,args)=>{
   // console.log(args);
   let basename = uuidV1();
-     let numberofpics =1;
+  let numberofpics =1;
   if(args=='4sq' || args == '4col'){
-    numberofpics =4;
+    numberofpics =4
+  }
+  else if(args =='3'){
+    numberofpics = 3
   }
   let p = Promise.resolve();
   // let filenames = new Array();
@@ -149,6 +152,9 @@ ipcMain.on('takepic',(event,args)=>{
   }
   else if(args=='1'){
     p=p.then((filenames)=>makecollage1(filenames,basename));
+  }
+  else if(args=='3'){
+    p=p.then((filenames)=>makecollage3(filenames,basename));
   }
   if(useflickr){
     p = p.then((colfilename)=>uploadtoFlickr(colfilename));
@@ -304,24 +310,9 @@ function uploadtoFlickr(filename){
 
 function makecollage4Sq(filenames,basename){
   console.log(filenames);
-  // return new Promise((resolve,reject)=>{
-  //     let finalname = basename+'_all.jpg';
-  //     let convertargs = ['(',filenames[0],filenames[1],'+append',')','(','(',filenames[2],filenames[3],'+append',')','lower1.jpg','-append',')','-append',finalname];
-
-  //     im.convert(convertargs,(err,stdout)=>{
-  //         if (err) {
-  //           reject();
-  //         }
-  //         else{
-  //           console.log('collaging done');
-  //           resolve(finalname);
-  //         }
-          
-  //     });
-  // })
-
+//crop before adding the bar
   return new Promise((resolve,reject)=>{
-      let finalname = basename+'_c.jpg';
+      let finalname = basename+'_po.jpg';
       let convertargs = ['(',filenames[0],filenames[1],'+append',')','(',filenames[2],filenames[3],'+append',')','-append',finalname];
 
       im.convert(convertargs,(err,stdout)=>{
@@ -331,21 +322,27 @@ function makecollage4Sq(filenames,basename){
           else{
             console.log('collaging done');
 
-            let composite = spawn('composite',['-gravity','South','lower1.jpg',finalname,basename+'_all.jpg']);
+            // let composite = spawn('composite',['-gravity','South','lower1.jpg',finalname,basename+'_all.jpg']);
 
-            composite.on('close',(err)=>{
-              resolve(basename+'_all.jpg');
+
+
+            im.crop({srcPath:finalname,dstPath:basename+'_c.jpg',width:2*2592,height:2*1728-200,quality:1,gravity:"Center"}, function(err2,stdout2,stderr){
+
+              let convertargs2 = ['(',basename+'_c.jpg','lower1.jpg',')','-append',basename+'_all.jpg'];
+              im.convert(convertargs2,(err3,stdout3)=>{
+                if(err){
+                  reject();
+                }
+                else{
+                  resolve(basename+'_all.jpg');
+
+                }
+              })
             })
-
-
-            // resolve(finalname);
           }
           
       });
   })
-
-
-
 }
 
 
@@ -382,6 +379,25 @@ function makecollage1(filenames,basename){
       } 
     });
   })
+}
+
+function makecollage3(filenames,basename){
+  console.log('for 3'+filenames);
+  return new Promise((resolve,reject)=>{
+    let finalname = basename+'_all.jpg'
+    let convertargs = ['background.jpg','-page','+95+715',filenames[0]+'[2262x1509]','-page','+2410+715',filenames[1]+'[1093x729]','-page','+2410+1495',filenames[2]+'[1093x729]','-layers','flatten',finalname];
+    console.log(convertargs);
+    im.convert(convertargs,(err,stdout)=>{
+      if(err){
+        console.log(err);
+        reject();
+      }
+      else{
+        console.log('collaging ddone');
+        resolve(finalname);
+      }
+    })
+  });
 }
 
 function takeNpicswithbasename(basename,n){
