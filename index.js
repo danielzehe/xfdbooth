@@ -121,7 +121,7 @@ ipcMain.on('showMain',(event,args)=>{
 
 ipcMain.on('takepic',(event,args)=>{
   // console.log(args);
-  let basename = uuidV1();
+  let basename = 'photos/'+uuidV1();
   let numberofpics =1;
   if(args=='4sq' || args == '4col'){
     numberofpics =4
@@ -430,7 +430,7 @@ function takeNpicswithbasename(basename,n){
 
 function takepicwithfilename(filename){
   return new Promise((resolve,reject)=>{
-    let phototaking = spawn('gphoto2',['--capture-image-and-download','--filename='+filename]);
+    let phototaking = spawn('gphoto2',['--capture-image-and-download','--filename=photos/'+filename]);
     phototaking.stdout.pipe(process.stdout);
 
     phototaking.on('close',(err)=>{
