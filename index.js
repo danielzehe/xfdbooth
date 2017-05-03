@@ -384,11 +384,25 @@ function makecollage1(filenames,basename){
 }
 
 function makecollage3(filenames,basename){
-  console.log('for 3'+filenames);
+  // console.log('for 3'+filenames);
   return new Promise((resolve,reject)=>{
+
+    for(var i=0;i<3;i++){
+      if(filenames[i]==undefined){
+        console.log('file '+i+' not there');
+        filenames[i] = 'backup-photo.jpg';
+      }
+      else{
+        if(!fs.existsSync(filenames[i])){
+          console.log('file '+i+' not there');
+          filenames[i] = 'backup-photo.jpg';
+        }
+      }
+    }
+  console.log('for 3'+filenames);
     let finalname = basename+'_all.jpg'
     let convertargs = ['background.jpg','-page','+95+715',filenames[0]+'[2262x1509]','-page','+2410+715',filenames[1]+'[1093x729]','-page','+2410+1495',filenames[2]+'[1093x729]','-layers','flatten',finalname];
-    console.log(convertargs);
+    // console.log(convertargs);
     im.convert(convertargs,(err,stdout)=>{
       if(err){
         console.log(err);
