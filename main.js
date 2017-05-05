@@ -19,3 +19,7 @@ function startPicTaking1(){
 function startPicTaking(){
 	ipcRenderer.send('startProcess','3')
 }
+
+function quit(){
+	ipcRenderer.send('quit','now');
+}
