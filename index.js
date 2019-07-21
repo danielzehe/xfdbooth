@@ -221,7 +221,7 @@ function uploadviaHTTP(filename){
         return console.error('upload failed:', err);
       }
       console.log('Upload successful!  Server responded with:', body);
-      let photourl = 'http://'+remoteurl+'/web/singlepic/'+filename;
+      let photourl = 'http://'+remoteurl+'/web/singlepic/'+path.basename(filename);
 
       resolve(photourl)
     });
